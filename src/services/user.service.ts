@@ -7,9 +7,9 @@ const fetchAllUsers = (
 ) => {
   return instance.get("/user", {
     params: {
-      Username: Username,
-      CurrentPage: CurrentPage,
-      PageSize: PageSize,
+      keyWord: Username,
+      page: CurrentPage,
+      limit: PageSize,
     },
   });
 };

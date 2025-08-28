@@ -51,6 +51,15 @@ export function SignUp() {
         }else {
           toast.error(response.message || "Registration failed");
         }
+        
+        // Clear form
+        setForm({
+          firstName: "",
+          lastName: "",
+          username: "",
+          email: "",
+          password: "",
+        });
       } catch (error) {
         toast.error(error.message || "An error occurred during registration");
       }
