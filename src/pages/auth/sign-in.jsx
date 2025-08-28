@@ -63,6 +63,7 @@ export function SignIn() {
 
           localStorage.setItem("jwt", token);
           localStorage.setItem("user", JSON.stringify(data));
+          navigate("/dashboard/home");
           // dispatch(loginUserRedux(data));
 
           // Navigate based on role

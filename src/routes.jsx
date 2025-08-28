@@ -1,10 +1,9 @@
 import {
   HomeIcon,
   UserCircleIcon,
-  TableCellsIcon,
-  InformationCircleIcon,
   ServerStackIcon,
   RectangleStackIcon,
+  Squares2X2Icon,
 } from "@heroicons/react/24/solid";
 import { Home, Profile, Tables, Notifications } from "@/pages/dashboard";
 import { SignIn, SignUp } from "@/pages/auth";
@@ -32,7 +31,7 @@ export const routes = [
         element: <Accounts />,
       },
       {
-        icon: <UserCircleIcon {...icon} />,
+        icon: <Squares2X2Icon {...icon} />,
         name: "ingredient",
         path: "/ingredient",
         element: <Ingredients />,
