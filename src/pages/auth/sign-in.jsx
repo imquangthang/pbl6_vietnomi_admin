@@ -84,7 +84,7 @@ export function SignIn() {
           toast.error(`Lỗi Firebase: ${err.message}`);
         }
       } else {
-        toast.error("Lỗi đăng nhập. Vui lòng thử lại.");
+        toast.error(response.message ||"Lỗi đăng nhập. Vui lòng thử lại.");
       }
     } catch (err) {
       toast.error(`Lỗi đăng nhập: ${err.message}`);
