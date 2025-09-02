@@ -1,0 +1,4 @@
+export default {
+  tailwindConfig: "./tailwind.config.cjs",
+  plugins: ["prettier-plugin-tailwindcss"],
+};
