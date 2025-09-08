@@ -3,7 +3,7 @@ import instance from "../setup/axios";
 const fetchAllUsers = (
   Username: string,
   CurrentPage: number,
-  PageSize: number
+  PageSize: number,
 ) => {
   return instance.get("/user", {
     params: {
@@ -14,5 +14,8 @@ const fetchAllUsers = (
   });
 };
 
+const deleteUserById = (id: number) => {
+  return instance.delete(`/user/${id}`);
+};
 
-export {fetchAllUsers}
+export { fetchAllUsers, deleteUserById };
