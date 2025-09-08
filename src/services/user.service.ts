@@ -18,4 +18,14 @@ const deleteUserById = (id: number) => {
   return instance.delete(`/user/${id}`);
 };
 
-export { fetchAllUsers, deleteUserById };
+const updateUserById = (id: number, data: any) => {
+  // Lọc bỏ các field null, undefined, ""
+  const filteredData = Object.fromEntries(
+    Object.entries(data).filter(
+      ([u, v]) => u !== "id" && v !== null && v !== undefined && v !== "",
+    ),
+  );
+  return instance.patch(`/user/${id}`, filteredData);
+};
+
+export { fetchAllUsers, deleteUserById, updateUserById };

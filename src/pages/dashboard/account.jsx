@@ -8,13 +8,18 @@ import {
   Tooltip,
   Progress,
 } from "@material-tailwind/react";
-import { deleteUserById, fetchAllUsers } from "@/services/user.service";
+import {
+  deleteUserById,
+  fetchAllUsers,
+  updateUserById,
+} from "@/services/user.service";
 import { useEffect, useState } from "react";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 import ReactPaginate from "react-paginate";
 import { Modal, Skeleton } from "@mui/material";
 import { ModalDelete } from "../modal/modal.delete";
 import { toast } from "react-toastify";
+import { ModalUpdate } from "../modal/modal.update";
 
 export function Accounts() {
   const [listUsers, setListUsers] = useState([]);
@@ -25,6 +30,9 @@ export function Accounts() {
 
   const [openModalDelete, setOpenModalDelete] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+
+  const [openModalUpdate, setOpenModalUpdate] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const getAllUsers = async () => {
     try {
@@ -58,6 +66,27 @@ export function Accounts() {
         toast.success(`Deleted item with ID: ${id}`);
         await getAllUsers();
         setOpenModalDelete(false);
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error(`Error deleting item with ID: ${id}`);
+    }
+  };
+
+  const handleOpenModalUpdate = (user) => {
+    setSelectedUser(user);
+    setOpenModalUpdate(true);
+  };
+
+  const handleUpdateAccount = async (data) => {
+    try {
+      let response = await updateUserById(selectedUser.id, data);
+      if (response) {
+        toast.success(`Updated item with ID: ${selectedUser.id}`);
+        await getAllUsers();
+        setOpenModalUpdate(false);
       } else {
         toast.error(response.message);
       }
@@ -187,7 +216,12 @@ export function Accounts() {
                             </td>
                             <td className={className}>
                               <div className="flex items-center gap-4">
-                                <PencilIcon className="h-4 w-4 cursor-pointer text-yellow-700" />
+                                <PencilIcon
+                                  className="h-4 w-4 cursor-pointer text-yellow-700"
+                                  onClick={() =>
+                                    handleOpenModalUpdate(listUsers[key])
+                                  }
+                                />
                                 <TrashIcon
                                   className="h-4 w-4 cursor-pointer text-red-500"
                                   onClick={() => handleOpenModalDelete(id)}
@@ -245,6 +279,17 @@ export function Accounts() {
             onHide={() => setOpenModalDelete(false)}
             deleteItem={() => {
               handleDeleteAccount(selectedId);
+            }}
+          />
+        )}
+
+        {openModalUpdate && (
+          <ModalUpdate
+            title="Account"
+            item={selectedUser}
+            onHide={() => setOpenModalUpdate(false)}
+            updateItem={(data) => {
+              handleUpdateAccount(data);
             }}
           />
         )}

@@ -1,84 +1,208 @@
-export const ModalUpdate = () => {
-  return (
-    <>
-      <button
-        data-modal-target="static-modal"
-        data-modal-toggle="static-modal"
-        class="block rounded-lg bg-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-        type="button"
-      >
-        Toggle modal
-      </button>
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogPanel,
+  DialogTitle,
+} from "@headlessui/react";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { useState } from "react";
 
-      <div
-        id="static-modal"
-        data-modal-backdrop="static"
-        tabindex="-1"
-        aria-hidden="true"
-        class="fixed left-0 right-0 top-0 z-50 hidden h-[calc(100%-1rem)] max-h-full w-full items-center justify-center overflow-y-auto overflow-x-hidden md:inset-0"
-      >
-        <div class="relative max-h-full w-full max-w-2xl p-4">
-          <div class="relative rounded-lg bg-white shadow-sm dark:bg-gray-700">
-            <div class="flex items-center justify-between rounded-t border-b border-gray-200 p-4 dark:border-gray-600 md:p-5">
-              <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-                Static modal
-              </h3>
-              <button
-                type="button"
-                class="ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white"
-                data-modal-hide="static-modal"
-              >
-                <svg
-                  class="h-3 w-3"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 14 14"
+export function ModalUpdate({ title, item, onHide, updateItem }) {
+  const [formData, setFormData] = useState(item || {});
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  return (
+    <div>
+      <Dialog open={true} onClose={onHide} className="relative z-10">
+        <DialogBackdrop
+          transition
+          className="data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in fixed inset-0 bg-gray-500/75 transition-opacity dark:bg-gray-900/50"
+        />
+
+        <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <DialogPanel
+              transition
+              className="data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in data-closed:sm:translate-y-0 data-closed:sm:scale-95 relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all dark:bg-gray-800 dark:outline dark:-outline-offset-1 dark:outline-white/10 sm:my-8 sm:w-full sm:max-w-lg"
+            >
+              <div className="bg-white px-4 pb-4 pt-5 dark:bg-gray-800 sm:p-6 sm:pb-4">
+                <div className="sm:flex sm:items-start">
+                  <div className="size-12 sm:size-10 mx-auto flex shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-500/10 sm:mx-0">
+                    <ExclamationTriangleIcon
+                      aria-hidden="true"
+                      className="size-6 text-red-600 dark:text-red-400"
+                    />
+                  </div>
+
+                  <form className="mt-3 w-full space-y-4">
+                    <DialogTitle
+                      as="h3"
+                      className="text-base font-semibold text-gray-900 dark:text-white"
+                    >
+                      Update {title}
+                    </DialogTitle>
+                    {title === "Account" ? (
+                      <>
+                        <div>
+                          <label
+                            htmlFor="first_name"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                          >
+                            First Name
+                          </label>
+                          <input
+                            type="text"
+                            id="first_name"
+                            name="first_name"
+                            placeholder="Enter first name"
+                            value={formData?.first_name || ""}
+                            onChange={(e) => handleChange(e)}
+                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="last_name"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                          >
+                            Last Name
+                          </label>
+                          <input
+                            type="text"
+                            id="last_name"
+                            name="last_name"
+                            placeholder="Enter last name"
+                            value={formData?.last_name || ""}
+                            onChange={(e) => handleChange(e)}
+                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="avatar_url"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                          >
+                            Avatar
+                          </label>
+                          <input
+                            type="text"
+                            id="avatar_url"
+                            name="avatar_url"
+                            placeholder="Enter avatar"
+                            value={
+                              formData?.avatar_url !== "string"
+                                ? formData?.avatar_url
+                                : ""
+                            }
+                            onChange={(e) => handleChange(e)}
+                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="role"
+                            className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                          >
+                            Role
+                          </label>
+                          <select
+                            id="role"
+                            name="role"
+                            value={formData?.role || "USER"}
+                            onChange={(e) => handleChange(e)}
+                            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm transition-colors hover:border-indigo-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:border-indigo-400"
+                          >
+                            <option value="USER">User</option>
+                            <option value="ADMIN">Admin</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="password"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                          >
+                            Password
+                          </label>
+                          <input
+                            type="text"
+                            id="password"
+                            name="password"
+                            placeholder="Enter first name"
+                            value={formData?.password || ""}
+                            onChange={(e) => handleChange(e)}
+                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <label
+                            htmlFor="name"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                          >
+                            Name
+                          </label>
+                          <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            placeholder="Enter name"
+                            value={item?.name}
+                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="img"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                          >
+                            Image
+                          </label>
+                          <input
+                            type="text"
+                            id="img"
+                            name="img"
+                            placeholder="Enter image"
+                            value={item?.img}
+                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+                          />
+                        </div>
+                      </>
+                    )}
+                  </form>
+                </div>
+              </div>
+              <div className="bg-gray-50 px-4 py-3 dark:bg-gray-700/25 sm:flex sm:flex-row-reverse sm:px-6">
+                <button
+                  type="button"
+                  onClick={() => updateItem(formData)}
+                  className="shadow-xs inline-flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500 dark:bg-blue-500 dark:shadow-none dark:hover:bg-blue-400 sm:ml-3 sm:w-auto"
                 >
-                  <path
-                    stroke="currentColor"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-                  />
-                </svg>
-                <span class="sr-only">Close modal</span>
-              </button>
-            </div>
-            <div class="space-y-4 p-4 md:p-5">
-              <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-                With less than a month to go before the European Union enacts
-                new consumer privacy laws for its citizens, companies around the
-                world are updating their terms of service agreements to comply.
-              </p>
-              <p class="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-                The European Union’s General Data Protection Regulation
-                (G.D.P.R.) goes into effect on May 25 and is meant to ensure a
-                common set of data rights in the European Union. It requires
-                organizations to notify users as soon as possible of high-risk
-                data breaches that could personally affect them.
-              </p>
-            </div>
-            <div class="flex items-center rounded-b border-t border-gray-200 p-4 dark:border-gray-600 md:p-5">
-              <button
-                data-modal-hide="static-modal"
-                type="button"
-                class="rounded-lg bg-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              >
-                I accept
-              </button>
-              <button
-                data-modal-hide="static-modal"
-                type="button"
-                class="ms-3 rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:outline-none focus:ring-4 focus:ring-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700"
-              >
-                Decline
-              </button>
-            </div>
+                  Update
+                </button>
+                <button
+                  type="button"
+                  data-autofocus
+                  onClick={onHide}
+                  className="shadow-xs inset-ring inset-ring-gray-300 dark:inset-ring-white/5 mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 dark:bg-white/10 dark:text-white dark:shadow-none dark:hover:bg-white/20 sm:mt-0 sm:w-auto"
+                >
+                  Cancel
+                </button>
+              </div>
+            </DialogPanel>
           </div>
         </div>
-      </div>
-    </>
+      </Dialog>
+    </div>
   );
-};
+}

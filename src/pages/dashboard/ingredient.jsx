@@ -108,7 +108,14 @@ export function Ingredients() {
             <table className="w-full min-w-[640px] table-auto">
               <thead>
                 <tr>
-                  {["ID", "Name", "Image", "Created At", "Action"].map((el) => (
+                  {[
+                    "ID",
+                    "Name",
+                    "Image",
+                    "Created At",
+                    "Updated At",
+                    "Action",
+                  ].map((el) => (
                     <th
                       key={el}
                       className="border-b border-blue-gray-50 px-5 py-3 text-left"
@@ -132,6 +139,7 @@ export function Ingredients() {
                           { variant: "text", width: 100 },
                           { variant: "circular", width: 40, height: 40 },
                           { variant: "text", width: 120 },
+                          { variant: "text", width: 120 },
                           { variant: "rectangular", width: 50, height: 20 },
                         ].map((props, i) => (
                           <td className="px-5 py-3" key={i}>
@@ -141,7 +149,7 @@ export function Ingredients() {
                       </tr>
                     ))
                   : listIngrediens.map(
-                      ({ id, name, image_url, createdAt }, key) => {
+                      ({ id, name, image_url, createdAt, updatedAt }, key) => {
                         const className = `py-3 px-5 ${
                           key === listIngrediens.length - 1
                             ? ""
@@ -171,6 +179,11 @@ export function Ingredients() {
                             <td className={className}>
                               <Typography className="text-xs font-normal text-blue-gray-500">
                                 {new Date(createdAt).toLocaleString()}
+                              </Typography>
+                            </td>
+                            <td className={className}>
+                              <Typography className="text-xs font-normal text-blue-gray-500">
+                                {new Date(updatedAt).toLocaleString()}
                               </Typography>
                             </td>
                             <td className={className}>
