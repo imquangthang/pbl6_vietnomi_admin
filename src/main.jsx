@@ -1,6 +1,6 @@
 /**
 =========================================================
-* Material Tailwind Dashboard React - v2.1.0
+* Vietnomi Dashboard React - v2.1.0
 =========================================================
 * Product Page: https://www.creative-tim.com/product/material-tailwind-dashboard-react
 * Copyright 2023 Creative Tim (https://www.creative-tim.com)
@@ -26,5 +26,5 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         </MaterialTailwindControllerProvider>
       </ThemeProvider>
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode>,
 );
