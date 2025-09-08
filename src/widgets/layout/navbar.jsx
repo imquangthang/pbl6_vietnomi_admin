@@ -16,32 +16,37 @@ export function Navbar({ brandName, routes, action }) {
   React.useEffect(() => {
     window.addEventListener(
       "resize",
-      () => window.innerWidth >= 960 && setOpenNav(false)
+      () => window.innerWidth >= 960 && setOpenNav(false),
     );
   }, []);
 
   const navList = (
     <ul className="mb-4 mt-2 flex flex-col gap-2 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-6">
       {routes
-      .filter((route) => route.layout === "dashboard")
-      .map((route) =>
-        route.pages.map(({ name, path, icon }) => (
-          <Typography
-            key={name}
-            as="li"
-            variant="small"
-            color="blue-gray"
-            className="capitalize"
-          >
-            <Link to={path} className="flex items-center gap-1 p-1 font-normal">
-              {icon && (
-                <span className="mr-1 opacity-50 w-[18px] h-[18px]">{icon}</span>
-              )}
-              {name}
-            </Link>
-          </Typography>
-        ))
-      )}
+        .filter((route) => route.layout === "dashboard")
+        .map((route) =>
+          route.pages.map(({ name, path, icon }) => (
+            <Typography
+              key={name}
+              as="li"
+              variant="small"
+              color="blue-gray"
+              className="capitalize"
+            >
+              <Link
+                to={path}
+                className="flex items-center gap-1 p-1 font-normal"
+              >
+                {icon && (
+                  <span className="mr-1 h-[18px] w-[18px] opacity-50">
+                    {icon}
+                  </span>
+                )}
+                {name}
+              </Link>
+            </Typography>
+          )),
+        )}
     </ul>
   );
 
@@ -51,7 +56,7 @@ export function Navbar({ brandName, routes, action }) {
         <Link to="/">
           <Typography
             variant="small"
-            className="mr-4 ml-2 cursor-pointer py-1.5 font-bold"
+            className="ml-2 mr-4 cursor-pointer py-1.5 font-bold"
           >
             {brandName}
           </Typography>
@@ -86,7 +91,7 @@ export function Navbar({ brandName, routes, action }) {
 }
 
 Navbar.defaultProps = {
-  brandName: "Material Tailwind React",
+  brandName: "Vietnomi",
   action: (
     <a
       href="https://www.creative-tim.com/product/material-tailwind-dashboard-react"
