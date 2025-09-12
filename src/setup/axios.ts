@@ -1,24 +1,49 @@
 import axios from "axios";
 
-// Lấy URL API từ biến môi trường
-// const apiUrl = import.meta.env.VITE_API_BASE_URL;
-
-// Tạo một instance Axios riêng
 const instance = axios.create({
   baseURL: "http://localhost:5000",
   timeout: 10000,
-  // withCredentials: true,
 });
 
-// Hàm xử lý lỗi chung cho interceptor
-const handleAxiosError = (error: any) => {
+// Hàm xử lý lỗi từ axios
+const handleAxiosError = async (error: any) => {
   const status = error?.response?.status;
   const message = error?.message;
+  const originalRequest = error.config;
 
   switch (status) {
     case 401:
       console.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
-      window.location.href = "/login";
+      originalRequest._retry = true;
+      try {
+        // Gọi API refresh token
+        const refreshResponse = await axios.post(
+          "http://localhost:5000/auth/refresh",
+          { withCredentials: true },
+        );
+
+        const newAccessToken = refreshResponse.data;
+
+        // Lưu token mới (ví dụ localStorage)
+        localStorage.setItem("token", newAccessToken);
+        let user: any = localStorage.getItem("user");
+        if (user) {
+          user = JSON.parse(user);
+          user.token = newAccessToken;
+          localStorage.setItem("user", JSON.stringify(user));
+        }
+
+        // Update header cho request cũ
+        originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
+
+        // Retry request cũ với token mới
+        return instance(originalRequest);
+      } catch (refreshError) {
+        // Nếu refresh cũng fail → logout
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
+      }
       break;
     case 403:
       console.error("Bạn không có quyền truy cập tài nguyên này.");
@@ -27,7 +52,7 @@ const handleAxiosError = (error: any) => {
     default:
       if (message === "Network Error") {
         console.error(
-          "🌐 Không thể kết nối tới máy chủ. Kiểm tra mạng hoặc CORS."
+          "🌐 Không thể kết nối tới máy chủ. Kiểm tra mạng hoặc CORS.",
         );
       } else if (error.code === "ECONNABORTED") {
         console.error("Hết thời gian kết nối tới máy chủ.");
@@ -50,7 +75,7 @@ const applyInterceptors = (axiosInstance: typeof instance) => {
       }
       return config;
     },
-    (error) => Promise.reject(error)
+    (error) => Promise.reject(error),
   );
 
   axiosInstance.interceptors.response.use((response) => {

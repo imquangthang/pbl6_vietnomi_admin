@@ -8,15 +8,19 @@ import {
 import { useEffect, useState } from "react";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 import {
-  addNewIngredien,
-  fetchAllIngrediens,
-} from "@/services/ingredient.service";
+  addNewTag,
+  deleteTagById,
+  fetchAllTags,
+  updateTagById,
+} from "@/services/tag.service";
 import { toast } from "react-toastify";
 import ReactPaginate from "react-paginate";
 import { Skeleton } from "@mui/material";
+import { ModalUpdate } from "../modal/modal.update";
+import { ModalDelete } from "../modal/modal.delete";
 
-export function Ingredients() {
-  const [listIngrediens, setListIngrediens] = useState([]);
+export function Tags() {
+  const [listTags, setListTags] = useState([]);
   const [inputName, setInputName] = useState("");
   const [inputAvatar, setInputAvatar] = useState("");
 
@@ -26,11 +30,17 @@ export function Ingredients() {
 
   const [loading, setLoading] = useState(true);
 
-  const getAllIngrediens = async () => {
+  const [openModalDelete, setOpenModalDelete] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
+
+  const [openModalUpdate, setOpenModalUpdate] = useState(false);
+  const [selectedTag, setSelectedTag] = useState(null);
+
+  const getAllTags = async () => {
     try {
       setLoading(true);
-      const response = await fetchAllIngrediens("", currentPage, currentLimit);
-      setListIngrediens(response.data);
+      const response = await fetchAllTags("", currentPage, currentLimit);
+      setListTags(response.data);
       setTotalPages(response.pagination.totalPages);
       setLoading(false);
     } catch (error) {
@@ -38,26 +48,68 @@ export function Ingredients() {
     }
   };
 
-  const handleAddIngredient = async () => {
-    let response = await addNewIngredien({
+  const handleAddTag = async () => {
+    let response = await addNewTag({
       name: inputName,
       image_url: inputAvatar,
     });
 
     if (response) {
-      toast.success("Add new ingredient successfully!");
+      toast.success("Add new tag successfully!");
       setInputName("");
       setInputAvatar("");
-      getAllIngrediens();
+      getAllTags();
     }
   };
 
   useEffect(() => {
-    getAllIngrediens();
+    getAllTags();
   }, [currentPage, currentLimit]);
 
   const handlePageClick = async (event) => {
     setCurrentPage(+event.selected + 1);
+  };
+
+  const handleOpenModalDelete = (id) => {
+    setSelectedId(id);
+    setOpenModalDelete(true);
+  };
+
+  const handleDeleteTag = async (id) => {
+    try {
+      let response = await deleteTagById(id);
+      if (response.code === 200) {
+        toast.success(`Deleted item with ID: ${id}`);
+        await getAllTags();
+        setOpenModalDelete(false);
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error(`Error deleting item with ID: ${id}`);
+    }
+  };
+
+  const handleOpenModalUpdate = (tag) => {
+    setSelectedTag(tag);
+    setOpenModalUpdate(true);
+  };
+
+  const handleUpdateTag = async (data) => {
+    try {
+      let response = await updateTagById(selectedTag.id, data);
+      if (response && response.code === 200) {
+        toast.success(`Updated item with ID: ${selectedTag.id}`);
+        setOpenModalUpdate(false);
+        await getAllTags();
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error(`Error deleting item with ID: ${id}`);
+    }
   };
 
   return (
@@ -65,7 +117,7 @@ export function Ingredients() {
       <Card>
         <CardHeader variant="gradient" color="gray" className="mb-8 p-6">
           <Typography variant="h6" color="white">
-            Ingredients Management
+            Tags Management
           </Typography>
         </CardHeader>
         <CardBody className="overflow-x-scroll px-0 pb-2 pt-0">
@@ -75,8 +127,8 @@ export function Ingredients() {
                 e.preventDefault();
               }}
             >
-              <div className="m-6 flex w-full max-w-4xl flex-col gap-4 rounded-xl border border-blue-200 bg-blue-50 p-6 text-blue-800 shadow-md">
-                <h2 className="text-lg font-semibold">Add New Ingredient</h2>
+              <div className="m-6 flex max-w-4xl flex-col gap-4 rounded-xl border border-blue-200 bg-blue-50 p-6 text-blue-800 shadow-md">
+                <h2 className="text-lg font-semibold">Add New Tag</h2>
 
                 <div className="flex flex-wrap items-center gap-4">
                   <input
@@ -98,7 +150,7 @@ export function Ingredients() {
                   <button
                     className="rounded-lg bg-blue-500 px-6 py-3 font-medium text-white transition hover:bg-blue-600 active:bg-blue-700"
                     type="submit"
-                    onClick={handleAddIngredient}
+                    onClick={handleAddTag}
                   >
                     Add
                   </button>
@@ -148,10 +200,10 @@ export function Ingredients() {
                         ))}
                       </tr>
                     ))
-                  : listIngrediens.map(
+                  : listTags.map(
                       ({ id, name, image_url, createdAt, updatedAt }, key) => {
                         const className = `py-3 px-5 ${
-                          key === listIngrediens.length - 1
+                          key === listTags.length - 1
                             ? ""
                             : "border-b border-blue-gray-50"
                         }`;
@@ -188,8 +240,16 @@ export function Ingredients() {
                             </td>
                             <td className={className}>
                               <div className="flex items-center gap-4">
-                                <PencilIcon className="h-4 w-4 cursor-pointer text-yellow-700" />
-                                <TrashIcon className="h-4 w-4 cursor-pointer text-red-500" />
+                                <PencilIcon
+                                  className="h-4 w-4 cursor-pointer text-yellow-700"
+                                  onClick={() =>
+                                    handleOpenModalUpdate(listTags[key])
+                                  }
+                                />
+                                <TrashIcon
+                                  className="h-4 w-4 cursor-pointer text-red-500"
+                                  onClick={() => handleOpenModalDelete(id)}
+                                />
                               </div>
                             </td>
                           </tr>
@@ -226,8 +286,30 @@ export function Ingredients() {
           </div>
         </CardBody>
       </Card>
+
+      {openModalDelete && (
+        <ModalDelete
+          title="Tag"
+          id={selectedId}
+          onHide={() => setOpenModalDelete(false)}
+          deleteItem={() => {
+            handleDeleteTag(selectedId);
+          }}
+        />
+      )}
+
+      {openModalUpdate && (
+        <ModalUpdate
+          title="Tag"
+          item={selectedTag}
+          onHide={() => setOpenModalUpdate(false)}
+          updateItem={(data) => {
+            handleUpdateTag(data);
+          }}
+        />
+      )}
     </div>
   );
 }
 
-export default Ingredients;
+export default Tags;
