@@ -4,11 +4,13 @@ import {
   ServerStackIcon,
   RectangleStackIcon,
   Squares2X2Icon,
+  TagIcon,
 } from "@heroicons/react/24/solid";
 import { Home, Profile, Tables, Notifications } from "@/pages/dashboard";
 import { SignIn, SignUp } from "@/pages/auth";
 import Accounts from "./pages/dashboard/account";
 import Ingredients from "./pages/dashboard/ingredient";
+import Tags from "./pages/dashboard/tag";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -31,10 +33,10 @@ export const routes = [
         element: <Accounts />,
       },
       {
-        icon: <Squares2X2Icon {...icon} />,
-        name: "ingredient",
-        path: "/ingredient",
-        element: <Ingredients />,
+        icon: <TagIcon {...icon} />,
+        name: "tag",
+        path: "/tag",
+        element: <Tags />,
       },
       // {
       //   icon: <UserCircleIcon {...icon} />,

@@ -6,6 +6,7 @@ import {
 } from "@headlessui/react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 
 export function ModalUpdate({ title, item, onHide, updateItem }) {
   const [formData, setFormData] = useState(item || {});
@@ -156,7 +157,8 @@ export function ModalUpdate({ title, item, onHide, updateItem }) {
                             id="name"
                             name="name"
                             placeholder="Enter name"
-                            value={item?.name}
+                            value={formData?.name}
+                            onChange={(e) => handleChange(e)}
                             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
                           />
                         </div>
@@ -170,10 +172,11 @@ export function ModalUpdate({ title, item, onHide, updateItem }) {
                           </label>
                           <input
                             type="text"
-                            id="img"
-                            name="img"
+                            id="image_url"
+                            name="image_url"
                             placeholder="Enter image"
-                            value={item?.img}
+                            value={formData?.image_url}
+                            onChange={(e) => handleChange(e)}
                             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
                           />
                         </div>

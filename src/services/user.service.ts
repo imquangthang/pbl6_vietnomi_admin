@@ -19,7 +19,6 @@ const deleteUserById = (id: number) => {
 };
 
 const updateUserById = (id: number, data: any) => {
-  // Lọc bỏ các field null, undefined, ""
   const filteredData = Object.fromEntries(
     Object.entries(data).filter(
       ([u, v]) => u !== "id" && v !== null && v !== undefined && v !== "",

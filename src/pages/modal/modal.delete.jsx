@@ -5,6 +5,7 @@ import {
   DialogTitle,
 } from "@headlessui/react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { createPortal } from "react-dom";
 
 export function ModalDelete({ title, id, onHide, deleteItem }) {
   return (
