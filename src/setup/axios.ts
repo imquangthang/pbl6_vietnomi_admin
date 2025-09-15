@@ -17,12 +17,12 @@ const handleAxiosError = async (error: any) => {
       originalRequest._retry = true;
       try {
         // Gọi API refresh token
-        const refreshResponse = await axios.post(
+        const refreshResponse: any = await axios.post(
           "http://localhost:5000/auth/refresh",
           { withCredentials: true },
         );
 
-        const newAccessToken = refreshResponse.data;
+        const newAccessToken = refreshResponse.refreshToken;
 
         // Lưu token mới (ví dụ localStorage)
         localStorage.setItem("token", newAccessToken);

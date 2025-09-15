@@ -26,18 +26,24 @@ import {
   setOpenConfigurator,
   setOpenSidenav,
 } from "@/context";
+import { useLoading } from "./loading-context/LoadingContext";
 
 export function DashboardNavbar() {
+  const { showLoading, hideLoading } = useLoading();
   const [controller, dispatch] = useMaterialTailwindController();
   const { fixedNavbar, openSidenav } = controller;
   const { pathname } = useLocation();
   const [layout, page] = pathname.split("/").filter((el) => el !== "");
 
   const logout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("jwt");
-    window.location.href = "/auth/sign-in";
-  }
+    showLoading();
+    // Simulate a logout process (e.g., API call)
+    setTimeout(() => {
+      hideLoading();
+      localStorage.removeItem("user");
+      localStorage.removeItem("jwt");
+    }, 1000);
+  };
 
   return (
     <Navbar
@@ -57,7 +63,7 @@ export function DashboardNavbar() {
               fixedNavbar ? "mt-1" : ""
             }`}
           >
-            <Link to={`/${layout}`}>
+            <Link to={`/${layout}/home`}>
               <Typography
                 variant="small"
                 color="blue-gray"
@@ -94,7 +100,7 @@ export function DashboardNavbar() {
             <Button
               variant="text"
               color="blue-gray"
-              className="hidden items-center gap-1 px-4 xl:flex normal-case"
+              className="hidden items-center gap-1 px-4 normal-case xl:flex"
               onClick={logout}
             >
               <ArrowRightOnRectangleIcon className="h-5 w-5 text-blue-gray-500" />
