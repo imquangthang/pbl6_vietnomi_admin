@@ -1,4 +1,5 @@
 import { AuthLogin } from "@/services/auth.service";
+import { useLoading } from "@/widgets/layout/loading-context/LoadingContext";
 import {
   Card,
   Input,
@@ -10,19 +11,16 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-
 export function SignIn() {
-  // const dispatch = useDispatch();
-
+  const { showLoading, hideLoading } = useLoading();
   let navigate = useNavigate();
 
   const [valueLogin, setValueLogin] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
-    // dispatch(setLoading());
+    showLoading();
     try {
-      // Try backend login
       let response = await AuthLogin(valueLogin, password);
 
       if (response && +response.code === 200) {
@@ -57,7 +55,7 @@ export function SignIn() {
               role,
               first_name,
               last_name,
-              avatar_url
+              avatar_url,
             },
           };
 
@@ -85,12 +83,12 @@ export function SignIn() {
           toast.error(`Lỗi Firebase: ${err.message}`);
         }
       } else {
-        toast.error(response.message ||"Lỗi đăng nhập. Vui lòng thử lại.");
+        toast.error(response.message || "Lỗi đăng nhập. Vui lòng thử lại.");
       }
     } catch (err) {
       toast.error(`Lỗi đăng nhập: ${err.message}`);
     } finally {
-      // dispatch(setUnLoading());
+      hideLoading();
     }
 
     console.log(auth);
@@ -102,35 +100,56 @@ export function SignIn() {
     }
   };
   return (
-    <section className="m-8 flex gap-4">
-      <div className="w-full lg:w-3/5 mt-24">
+    <section className="mx-8 my-2 flex gap-4">
+      <div className="w-full lg:w-3/5">
         <div className="text-center">
-          <Typography variant="h2" className="font-bold mb-4">Sign In</Typography>
-          <Typography variant="paragraph" color="blue-gray" className="text-lg font-normal">Enter your email and password to Sign In.</Typography>
+          <img
+            src="/img/vietnomi_logo.png"
+            alt="logo"
+            className="mx-auto w-32"
+          />
+          <Typography variant="h2" className="mb-4 font-bold">
+            Sign In
+          </Typography>
+          <Typography
+            variant="paragraph"
+            color="blue-gray"
+            className="text-lg font-normal"
+          >
+            Enter your email and password to Sign In.
+          </Typography>
         </div>
-        <form className="mt-8 mb-2 mx-auto w-80 max-w-screen-lg lg:w-1/2">
+        <form className="mx-auto mb-2 mt-8 w-80 max-w-screen-lg lg:w-1/2">
           <div className="mb-1 flex flex-col gap-6">
-            <Typography variant="small" color="blue-gray" className="-mb-3 font-medium">
+            <Typography
+              variant="small"
+              color="blue-gray"
+              className="-mb-3 font-medium"
+            >
               Username
             </Typography>
             <Input
               size="lg"
               placeholder="name@mail.com"
-              className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
+              className="!border-t-blue-gray-200 focus:!border-t-gray-900"
               labelProps={{
                 className: "before:content-none after:content-none",
               }}
               value={valueLogin}
               onChange={(e) => setValueLogin(e.target.value)}
             />
-            <Typography variant="small" color="blue-gray" className="-mb-3 font-medium">
+            <Typography
+              variant="small"
+              color="blue-gray"
+              className="-mb-3 font-medium"
+            >
               Password
             </Typography>
             <Input
               type="password"
               size="lg"
               placeholder="********"
-              className=" !border-t-blue-gray-200 focus:!border-t-gray-900"
+              className="!border-t-blue-gray-200 focus:!border-t-gray-900"
               labelProps={{
                 className: "before:content-none after:content-none",
               }}
@@ -143,28 +162,32 @@ export function SignIn() {
             Sign In
           </Button>
 
-          <div className="flex items-center justify-between gap-2 mt-6">
-            <Checkbox label="Remember Me" className="font-medium text-gray-900"/>
+          <div className="mt-6 flex items-center justify-between gap-2">
+            <Checkbox
+              label="Remember Me"
+              className="font-medium text-gray-900"
+            />
             <Typography variant="small" className="font-medium text-gray-900">
-              <a href="#">
-                Forgot Password
-              </a>
+              <a href="#">Forgot Password</a>
             </Typography>
           </div>
-          <Typography variant="paragraph" className="text-center text-blue-gray-500 font-medium mt-4">
+          <Typography
+            variant="paragraph"
+            className="mt-4 text-center font-medium text-blue-gray-500"
+          >
             Not registered?
-            <Link to="/auth/sign-up" className="text-gray-900 ml-1">Create account</Link>
+            <Link to="/auth/sign-up" className="ml-1 text-gray-900">
+              Create account
+            </Link>
           </Typography>
         </form>
-
       </div>
-      <div className="w-2/5 h-full hidden lg:block">
+      <div className="hidden h-full w-2/5 lg:block">
         <img
           src="/img/pattern.png"
-          className="h-full w-full object-cover rounded-3xl"
+          className="h-full w-full rounded-3xl object-cover"
         />
       </div>
-
     </section>
   );
 }

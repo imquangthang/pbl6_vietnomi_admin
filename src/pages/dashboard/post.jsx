@@ -9,10 +9,10 @@ import {
   Progress,
 } from "@material-tailwind/react";
 import {
-  deleteUserById,
-  fetchAllUsers,
-  updateUserById,
-} from "@/services/user.service";
+  deleteFoodById,
+  fetchAllFoods,
+  updateFoodById,
+} from "@/services/food.service";
 import { useEffect, useState } from "react";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 import ReactPaginate from "react-paginate";
@@ -20,11 +20,9 @@ import { Modal, Skeleton } from "@mui/material";
 import { ModalDelete } from "../modal/modal.delete";
 import { toast } from "react-toastify";
 import { ModalUpdate } from "../modal/modal.update";
-import { useLoading } from "@/widgets/layout/loading-context/LoadingContext";
 
-export function Accounts() {
-  const { showLoading, hideLoading } = useLoading();
-  const [listUsers, setListUsers] = useState([]);
+export function Posts() {
+  const [listFoods, setListFoods] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentLimit, _setCurrentLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
@@ -34,22 +32,22 @@ export function Accounts() {
   const [selectedId, setSelectedId] = useState(null);
 
   const [openModalUpdate, setOpenModalUpdate] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedFood, setSelectedFood] = useState(null);
 
-  const getAllUsers = async () => {
+  const getAllFoods = async () => {
     try {
       setLoading(true);
-      const response = await fetchAllUsers("", currentPage, currentLimit);
-      setListUsers(response.data);
+      const response = await fetchAllFoods("", currentPage, currentLimit);
+      setListFoods(response.data);
       setTotalPages(response.pagination.totalPages);
       setLoading(false);
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error("Error fetching foods:", error);
     }
   };
 
   useEffect(() => {
-    getAllUsers();
+    getAllFoods();
   }, [currentPage, currentLimit]);
 
   const handlePageClick = async (event) => {
@@ -61,46 +59,40 @@ export function Accounts() {
     setOpenModalDelete(true);
   };
 
-  const handleDeleteAccount = async (id) => {
-    showLoading();
+  const handleDeleteFood = async (id) => {
     try {
-      let response = await deleteUserById(id);
-      if (response.code === 200) {
+      let response = await deleteFoodById(id);
+      if (response) {
         toast.success(`Deleted item with ID: ${id}`);
-        await getAllUsers();
+        await getAllFoods();
         setOpenModalDelete(false);
       } else {
         toast.error(response.message);
       }
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.error("Error deleting food:", error);
       toast.error(`Error deleting item with ID: ${id}`);
-    } finally {
-      hideLoading();
     }
   };
 
-  const handleOpenModalUpdate = (user) => {
-    setSelectedUser(user);
+  const handleOpenModalUpdate = (food) => {
+    setSelectedFood(food);
     setOpenModalUpdate(true);
   };
 
-  const handleUpdateAccount = async (data) => {
+  const handleUpdateFood = async (data) => {
     try {
-      showLoading();
-      let response = await updateUserById(selectedUser.id, data);
+      let response = await updateFoodById(selectedFood.id, data);
       if (response) {
-        toast.success(`Updated item with ID: ${selectedUser.id}`);
-        await getAllUsers();
+        toast.success(`Updated item with ID: ${selectedFood.id}`);
+        await getAllFoods();
         setOpenModalUpdate(false);
       } else {
         toast.error(response.message);
       }
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.error("Error deleting food:", error);
       toast.error(`Error deleting item with ID: ${id}`);
-    } finally {
-      hideLoading();
     }
   };
 
@@ -110,7 +102,7 @@ export function Accounts() {
         <Card>
           <CardHeader variant="gradient" color="gray" className="mb-8 p-6">
             <Typography variant="h6" color="white">
-              Authors Management
+              Foods Management
             </Typography>
           </CardHeader>
           <CardBody className="overflow-x-scroll px-0 pb-2 pt-0">
@@ -120,12 +112,12 @@ export function Accounts() {
                   <tr>
                     {[
                       "ID",
-                      "First Name",
-                      "Last Name",
-                      "Username",
-                      "Email",
-                      "Role",
-                      "Avatar",
+                      "Dish Name",
+                      "Dish Type",
+                      "Serving Size",
+                      "Cooking Time",
+                      "Calories",
+                      "Image",
                       "Action",
                     ].map((el) => (
                       <th
@@ -144,7 +136,7 @@ export function Accounts() {
                 </thead>
                 <tbody>
                   {loading ? (
-                    Array.from({ length: 5 }).map((_, index) => (
+                    Array.from({ length: 10 }).map((_, index) => (
                       <tr key={index}>
                         {[
                           { variant: "text", width: 30 },
@@ -162,22 +154,22 @@ export function Accounts() {
                         ))}
                       </tr>
                     ))
-                  ) : listUsers.length > 0 ? (
-                    listUsers.map(
+                  ) : listFoods.length > 0 ? (
+                    listFoods.map(
                       (
                         {
                           id,
-                          first_name,
-                          last_name,
-                          username,
-                          email,
-                          role,
-                          avatar_url,
+                          dish_name,
+                          dish_type,
+                          serving_size,
+                          cooking_time,
+                          calories,
+                          image_link,
                         },
                         key,
                       ) => {
                         const className = `py-3 px-5 ${
-                          key === listUsers.length - 1
+                          key === listFoods.length - 1
                             ? ""
                             : "border-b border-blue-gray-50"
                         }`;
@@ -191,32 +183,32 @@ export function Accounts() {
                             </td>
                             <td className={className}>
                               <Typography className="text-xs font-normal text-blue-gray-500">
-                                {first_name}
+                                {dish_name}
                               </Typography>
                             </td>
                             <td className={className}>
                               <Typography className="text-xs font-normal text-blue-gray-500">
-                                {last_name}
+                                {dish_type}
                               </Typography>
                             </td>
                             <td className={className}>
                               <Typography className="text-xs font-normal text-blue-gray-500">
-                                {username}
+                                {serving_size}
                               </Typography>
                             </td>
                             <td className={className}>
                               <Typography className="text-xs font-normal text-blue-gray-500">
-                                {email}
+                                {cooking_time} mins
                               </Typography>
                             </td>
                             <td className={className}>
                               <Typography className="text-xs font-normal text-blue-gray-500">
-                                {role}
+                                {calories}
                               </Typography>
                             </td>
                             <td className={className}>
                               <Avatar
-                                src={avatar_url}
+                                src={image_link}
                                 alt="avatar"
                                 size="sm"
                                 variant="rounded"
@@ -227,7 +219,7 @@ export function Accounts() {
                                 <PencilIcon
                                   className="h-4 w-4 cursor-pointer text-yellow-700"
                                   onClick={() =>
-                                    handleOpenModalUpdate(listUsers[key])
+                                    handleOpenModalUpdate(listFoods[key])
                                   }
                                 />
                                 <TrashIcon
@@ -246,7 +238,7 @@ export function Accounts() {
                         colSpan={8}
                         className="py-6 text-center text-sm text-blue-gray-500"
                       >
-                        No users found
+                        No foods found
                       </td>
                     </tr>
                   )}
@@ -282,22 +274,22 @@ export function Accounts() {
         </Card>
         {openModalDelete && (
           <ModalDelete
-            title="Account"
+            title="Food"
             id={selectedId}
             onHide={() => setOpenModalDelete(false)}
             deleteItem={() => {
-              handleDeleteAccount(selectedId);
+              handleDeleteFood(selectedId);
             }}
           />
         )}
 
         {openModalUpdate && (
           <ModalUpdate
-            title="Account"
-            item={selectedUser}
+            title="Food"
+            item={selectedFood}
             onHide={() => setOpenModalUpdate(false)}
             updateItem={(data) => {
-              handleUpdateAccount(data);
+              handleUpdateFood(data);
             }}
           />
         )}
@@ -306,4 +298,4 @@ export function Accounts() {
   );
 }
 
-export default Accounts;
+export default Posts;
