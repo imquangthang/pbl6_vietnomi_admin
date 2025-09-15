@@ -18,8 +18,11 @@ import ReactPaginate from "react-paginate";
 import { Skeleton } from "@mui/material";
 import { ModalUpdate } from "../modal/modal.update";
 import { ModalDelete } from "../modal/modal.delete";
+import { useLoading } from "@/widgets/layout/loading-context/LoadingContext";
 
 export function Tags() {
+  const { showLoading, hideLoading } = useLoading();
+
   const [listTags, setListTags] = useState([]);
   const [inputName, setInputName] = useState("");
   const [inputAvatar, setInputAvatar] = useState("");
@@ -49,16 +52,26 @@ export function Tags() {
   };
 
   const handleAddTag = async () => {
-    let response = await addNewTag({
-      name: inputName,
-      image_url: inputAvatar,
-    });
+    try {
+      showLoading();
+      let response = await addNewTag({
+        name: inputName,
+        image_url: inputAvatar,
+      });
 
-    if (response) {
-      toast.success("Add new tag successfully!");
-      setInputName("");
-      setInputAvatar("");
-      getAllTags();
+      if (response) {
+        toast.success("Add new tag successfully!");
+        setInputName("");
+        setInputAvatar("");
+        getAllTags();
+      } else {
+        toast.error("Failed to add new tag.");
+      }
+    } catch (error) {
+      console.error("Error adding tag:", error);
+      toast.error("Error adding tag.");
+    } finally {
+      hideLoading();
     }
   };
 
@@ -77,6 +90,7 @@ export function Tags() {
 
   const handleDeleteTag = async (id) => {
     try {
+      showLoading();
       let response = await deleteTagById(id);
       if (response.code === 200) {
         toast.success(`Deleted item with ID: ${id}`);
@@ -88,6 +102,8 @@ export function Tags() {
     } catch (error) {
       console.error("Error deleting user:", error);
       toast.error(`Error deleting item with ID: ${id}`);
+    } finally {
+      hideLoading();
     }
   };
 
@@ -98,6 +114,7 @@ export function Tags() {
 
   const handleUpdateTag = async (data) => {
     try {
+      showLoading();
       let response = await updateTagById(selectedTag.id, data);
       if (response && response.code === 200) {
         toast.success(`Updated item with ID: ${selectedTag.id}`);
@@ -109,6 +126,8 @@ export function Tags() {
     } catch (error) {
       console.error("Error deleting user:", error);
       toast.error(`Error deleting item with ID: ${id}`);
+    } finally {
+      hideLoading();
     }
   };
 
@@ -127,7 +146,7 @@ export function Tags() {
                 e.preventDefault();
               }}
             >
-              <div className="m-6 flex max-w-4xl flex-col gap-4 rounded-xl border border-blue-200 bg-blue-50 p-6 text-blue-800 shadow-md">
+              <div className="m-6 flex max-w-full flex-col gap-4 rounded-xl border border-blue-200 bg-blue-50 p-6 text-blue-800 shadow-md">
                 <h2 className="text-lg font-semibold">Add New Tag</h2>
 
                 <div className="flex flex-wrap items-center gap-4">

@@ -5,7 +5,6 @@ import {
   RectangleStackIcon,
   Squares2X2Icon,
   TagIcon,
-  ArrowUpOnSquareIcon,
   ArrowUpOnSquareStackIcon,
 } from "@heroicons/react/24/solid";
 import { Home, Profile, Tables, Notifications } from "@/pages/dashboard";

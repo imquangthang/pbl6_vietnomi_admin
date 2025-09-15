@@ -16,12 +16,14 @@ import {
 import { useEffect, useState } from "react";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 import ReactPaginate from "react-paginate";
-import { Modal, Skeleton } from "@mui/material";
+import { Skeleton } from "@mui/material";
 import { ModalDelete } from "../modal/modal.delete";
 import { toast } from "react-toastify";
 import { ModalUpdate } from "../modal/modal.update";
+import { useLoading } from "@/widgets/layout/loading-context/LoadingContext";
 
 export function Foods() {
+  const { showLoading, hideLoading } = useLoading();
   const [listFoods, setListFoods] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentLimit, _setCurrentLimit] = useState(10);
@@ -61,6 +63,7 @@ export function Foods() {
 
   const handleDeleteFood = async (id) => {
     try {
+      showLoading();
       let response = await deleteFoodById(id);
       if (response) {
         toast.success(`Deleted item with ID: ${id}`);
@@ -72,6 +75,8 @@ export function Foods() {
     } catch (error) {
       console.error("Error deleting food:", error);
       toast.error(`Error deleting item with ID: ${id}`);
+    } finally {
+      hideLoading();
     }
   };
 
@@ -82,6 +87,7 @@ export function Foods() {
 
   const handleUpdateFood = async (data) => {
     try {
+      showLoading();
       let response = await updateFoodById(selectedFood.id, data);
       if (response) {
         toast.success(`Updated item with ID: ${selectedFood.id}`);
@@ -93,6 +99,8 @@ export function Foods() {
     } catch (error) {
       console.error("Error deleting food:", error);
       toast.error(`Error deleting item with ID: ${id}`);
+    } finally {
+      hideLoading();
     }
   };
 
