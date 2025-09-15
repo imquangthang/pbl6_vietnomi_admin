@@ -14,8 +14,26 @@ const fetchAllFoods = (
   });
 };
 
+const fetchAllFoodsNoPosted = (
+  Foodname: string,
+  CurrentPage: number,
+  PageSize: number,
+) => {
+  return instance.get("/food/no-posted", {
+    params: {
+      keyWord: Foodname,
+      page: CurrentPage,
+      limit: PageSize,
+    },
+  });
+};
+
 const deleteFoodById = (id: number) => {
   return instance.delete(`/food/${id}`);
+};
+
+const handleAcviteFood = (id: number) => {
+  return instance.post(`/food/post/${id}`);
 };
 
 const updateFoodById = (id: number, data: any) => {
@@ -23,7 +41,14 @@ const updateFoodById = (id: number, data: any) => {
     Object.entries(data).filter(
       ([u, v]) =>
         u !== "id" &&
-        !["createdAt", "updatedAt"].includes(u) &&
+        ![
+          "createdAt",
+          "updatedAt",
+          "deletedAt",
+          "user_id",
+          "posted",
+          "delFlag",
+        ].includes(u) &&
         v !== null &&
         v !== undefined &&
         v !== "",
@@ -38,4 +63,10 @@ const updateFoodById = (id: number, data: any) => {
   return instance.patch(`/food/${id}`, filteredData);
 };
 
-export { fetchAllFoods, deleteFoodById, updateFoodById };
+export {
+  fetchAllFoods,
+  deleteFoodById,
+  updateFoodById,
+  fetchAllFoodsNoPosted,
+  handleAcviteFood,
+};

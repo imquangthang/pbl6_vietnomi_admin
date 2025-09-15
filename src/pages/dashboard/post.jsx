@@ -4,40 +4,34 @@ import {
   CardBody,
   Typography,
   Avatar,
-  Chip,
-  Tooltip,
-  Progress,
+  Button,
 } from "@material-tailwind/react";
 import {
-  deleteFoodById,
-  fetchAllFoods,
-  updateFoodById,
+  fetchAllFoodsNoPosted,
+  handleAcviteFood,
 } from "@/services/food.service";
 import { useEffect, useState } from "react";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/solid";
 import ReactPaginate from "react-paginate";
-import { Modal, Skeleton } from "@mui/material";
-import { ModalDelete } from "../modal/modal.delete";
+import { Skeleton } from "@mui/material";
 import { toast } from "react-toastify";
-import { ModalUpdate } from "../modal/modal.update";
+import { useLoading } from "@/widgets/layout/loading-context/LoadingContext";
 
 export function Posts() {
+  const { showLoading, hideLoading } = useLoading();
   const [listFoods, setListFoods] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentLimit, _setCurrentLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const [openModalDelete, setOpenModalDelete] = useState(false);
-  const [selectedId, setSelectedId] = useState(null);
-
-  const [openModalUpdate, setOpenModalUpdate] = useState(false);
-  const [selectedFood, setSelectedFood] = useState(null);
-
-  const getAllFoods = async () => {
+  const getAllFoodsNoPosted = async () => {
     try {
       setLoading(true);
-      const response = await fetchAllFoods("", currentPage, currentLimit);
+      const response = await fetchAllFoodsNoPosted(
+        "",
+        currentPage,
+        currentLimit,
+      );
       setListFoods(response.data);
       setTotalPages(response.pagination.totalPages);
       setLoading(false);
@@ -47,52 +41,27 @@ export function Posts() {
   };
 
   useEffect(() => {
-    getAllFoods();
+    getAllFoodsNoPosted();
   }, [currentPage, currentLimit]);
 
   const handlePageClick = async (event) => {
     setCurrentPage(+event.selected + 1);
   };
 
-  const handleOpenModalDelete = (id) => {
-    setSelectedId(id);
-    setOpenModalDelete(true);
-  };
-
-  const handleDeleteFood = async (id) => {
+  const acviteFood = async (id) => {
     try {
-      let response = await deleteFoodById(id);
+      showLoading();
+      const response = await handleAcviteFood(id);
       if (response) {
-        toast.success(`Deleted item with ID: ${id}`);
-        await getAllFoods();
-        setOpenModalDelete(false);
+        getAllFoodsNoPosted();
+        toast.success("Acvite food successfully!");
       } else {
-        toast.error(response.message);
+        toast.error("Acvite food failed!");
       }
     } catch (error) {
-      console.error("Error deleting food:", error);
-      toast.error(`Error deleting item with ID: ${id}`);
-    }
-  };
-
-  const handleOpenModalUpdate = (food) => {
-    setSelectedFood(food);
-    setOpenModalUpdate(true);
-  };
-
-  const handleUpdateFood = async (data) => {
-    try {
-      let response = await updateFoodById(selectedFood.id, data);
-      if (response) {
-        toast.success(`Updated item with ID: ${selectedFood.id}`);
-        await getAllFoods();
-        setOpenModalUpdate(false);
-      } else {
-        toast.error(response.message);
-      }
-    } catch (error) {
-      console.error("Error deleting food:", error);
-      toast.error(`Error deleting item with ID: ${id}`);
+      console.error("Error fetching foods:", error);
+    } finally {
+      hideLoading();
     }
   };
 
@@ -102,7 +71,7 @@ export function Posts() {
         <Card>
           <CardHeader variant="gradient" color="gray" className="mb-8 p-6">
             <Typography variant="h6" color="white">
-              Foods Management
+              Posts Management
             </Typography>
           </CardHeader>
           <CardBody className="overflow-x-scroll px-0 pb-2 pt-0">
@@ -216,16 +185,14 @@ export function Posts() {
                             </td>
                             <td className={className}>
                               <div className="flex items-center gap-4">
-                                <PencilIcon
-                                  className="h-4 w-4 cursor-pointer text-yellow-700"
-                                  onClick={() =>
-                                    handleOpenModalUpdate(listFoods[key])
-                                  }
-                                />
-                                <TrashIcon
-                                  className="h-4 w-4 cursor-pointer text-red-500"
-                                  onClick={() => handleOpenModalDelete(id)}
-                                />
+                                <Button
+                                  size="sm"
+                                  color="blue"
+                                  variant="gradient"
+                                  onClick={() => acviteFood(id)}
+                                >
+                                  Active
+                                </Button>
                               </div>
                             </td>
                           </tr>
@@ -272,27 +239,6 @@ export function Posts() {
             </div>
           </CardBody>
         </Card>
-        {openModalDelete && (
-          <ModalDelete
-            title="Food"
-            id={selectedId}
-            onHide={() => setOpenModalDelete(false)}
-            deleteItem={() => {
-              handleDeleteFood(selectedId);
-            }}
-          />
-        )}
-
-        {openModalUpdate && (
-          <ModalUpdate
-            title="Food"
-            item={selectedFood}
-            onHide={() => setOpenModalUpdate(false)}
-            updateItem={(data) => {
-              handleUpdateFood(data);
-            }}
-          />
-        )}
       </div>
     </>
   );
