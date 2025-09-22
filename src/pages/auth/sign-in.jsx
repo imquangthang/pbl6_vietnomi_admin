@@ -168,7 +168,7 @@ export function SignIn() {
               className="font-medium text-gray-900"
             />
             <Typography variant="small" className="font-medium text-gray-900">
-              <a href="#">Forgot Password</a>
+              <a href="forgot-password">Forgot Password</a>
             </Typography>
           </div>
           <Typography
