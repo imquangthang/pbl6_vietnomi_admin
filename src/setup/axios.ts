@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const URL_API = "https://pbl6-vietnomi-be.onrender.com";
+
 const instance = axios.create({
-  baseURL: "http://localhost:5000",
+  baseURL: URL_API,
   timeout: 10000,
 });
 
@@ -18,7 +20,7 @@ const handleAxiosError = async (error: any) => {
       try {
         // Gọi API refresh token
         const refreshResponse: any = await axios.post(
-          "http://localhost:5000/auth/refresh",
+          URL_API + "/auth/refresh",
           { withCredentials: true },
         );
 
