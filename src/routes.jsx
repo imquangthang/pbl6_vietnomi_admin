@@ -15,6 +15,7 @@ import Tags from "./pages/dashboard/tag";
 import Foods from "./pages/dashboard/food";
 import Posts from "./pages/dashboard/post";
 import ForgotPassword from "./pages/auth/forgot-password";
+import FoodTag from "./pages/dashboard/food-tag";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -53,6 +54,12 @@ export const routes = [
         name: "post",
         path: "/post",
         element: <Posts />,
+      },
+      {
+        icon: <Squares2X2Icon {...icon} />,
+        name: "food-tag",
+        path: "/food-tag",
+        element: <FoodTag />,
       },
     ],
   },
