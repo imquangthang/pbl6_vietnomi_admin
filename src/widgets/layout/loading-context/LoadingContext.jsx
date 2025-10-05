@@ -8,8 +8,6 @@ export const LoadingProvider = ({ children }) => {
   const showLoading = () => setIsLoading(true);
   const hideLoading = () => setIsLoading(false);
 
-  console.log("LoadingContext - isLoading:", isLoading);
-
   return (
     <LoadingContext.Provider value={{ isLoading, showLoading, hideLoading }}>
       {children}

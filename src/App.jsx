@@ -48,6 +48,7 @@ function App() {
         draggable
         pauseOnHover
         theme="light"
+        className={"z-[10000]"}
       />
       <DotLoaderScreen />
     </LoadingProvider>
