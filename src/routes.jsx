@@ -6,11 +6,11 @@ import {
   Squares2X2Icon,
   TagIcon,
   ArrowUpOnSquareStackIcon,
+  PuzzlePieceIcon,
 } from "@heroicons/react/24/solid";
-import { Home, Profile, Tables, Notifications } from "@/pages/dashboard";
+import { Home } from "@/pages/dashboard";
 import { SignIn, SignUp } from "@/pages/auth";
 import Accounts from "./pages/dashboard/account";
-import Ingredients from "./pages/dashboard/ingredient";
 import Tags from "./pages/dashboard/tag";
 import Foods from "./pages/dashboard/food";
 import Posts from "./pages/dashboard/post";
@@ -56,7 +56,7 @@ export const routes = [
         element: <Posts />,
       },
       {
-        icon: <Squares2X2Icon {...icon} />,
+        icon: <PuzzlePieceIcon {...icon} />,
         name: "food-tag",
         path: "/food-tag",
         element: <FoodTag />,
