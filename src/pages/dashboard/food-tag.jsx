@@ -45,9 +45,8 @@ export function FoodTag() {
   const getAllTags = async (search, page, limit) => {
     try {
       setLoading(true);
-      const response = await fetchAllTags("", currentPage, 1000);
+      const response = await fetchAllTags("", 1, 1000);
       setListTags(response.data);
-      setTotalPages(response.pagination.totalPages);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching users:", error);

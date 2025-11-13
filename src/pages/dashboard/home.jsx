@@ -1,255 +1,367 @@
-import React from "react";
-import {
-  Typography,
-  Card,
-  CardHeader,
-  CardBody,
-  IconButton,
-  Menu,
-  MenuHandler,
-  MenuList,
-  MenuItem,
-  Avatar,
-  Tooltip,
-  Progress,
-} from "@material-tailwind/react";
-import {
-  EllipsisVerticalIcon,
-  ArrowUpIcon,
-} from "@heroicons/react/24/outline";
+import React, { useEffect, useState, useMemo } from "react";
+import { Typography } from "@material-tailwind/react";
 import { StatisticsCard } from "@/widgets/cards";
 import { StatisticsChart } from "@/widgets/charts";
+import { Skeleton } from "@mui/material";
+
 import {
-  statisticsCardsData,
-  statisticsChartsData,
-  projectsTableData,
-  ordersOverviewData,
-} from "@/data";
-import { CheckCircleIcon, ClockIcon } from "@heroicons/react/24/solid";
+  fetchTotalUsers,
+  fetchTotalFoods,
+  fetchTotalComments,
+  fetchTotalRatings,
+  fetchChartCustomerVelocity,
+  fetchChartContentGrowthSpectrum,
+  fetchChartCoreEngagementIndex,
+} from "@/services/dashboard.service";
+
+import {
+  ChatBubbleLeftIcon,
+  ClockIcon,
+  Squares2X2Icon,
+  StarIcon,
+  UsersIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+} from "@heroicons/react/24/solid";
+import { toast } from "react-toastify";
+
+// --- HÀM HỖ TRỢ ---
+
+const formatFooter = (data, changeType) => {
+  // ... (Giữ nguyên logic footer)
+  const isIncrease = data.changeDirection === "increase";
+  const textColor = isIncrease ? "text-green-500" : "text-red-500";
+  const percentageText = `${isIncrease ? "+" : ""}${data.percentageChange}%`;
+
+  let periodText = "";
+  switch (changeType) {
+    case "daily":
+      periodText = "hôm qua";
+      break;
+    case "weekly":
+      periodText = "tuần trước";
+      break;
+    case "monthly":
+      periodText = "tháng trước";
+      break;
+    default:
+      periodText = "giai đoạn trước";
+  }
+
+  const StrongComponent = (
+    <strong className={textColor}>{percentageText}</strong>
+  );
+
+  return (
+    <Typography className="font-normal text-blue-gray-600">
+      {StrongComponent}
+      &nbsp;so với {periodText}
+    </Typography>
+  );
+};
+
+// Hàm cung cấp các options mặc định cho ApexChart
+const getChartOptions = (labels, type = "bar") => ({
+  chart: {
+    type: type,
+    toolbar: { show: false },
+    height: 220,
+  },
+  title: { show: false },
+  dataLabels: { enabled: false },
+
+  // SỬA ĐỔI QUAN TRỌNG: Đặt màu series thành màu đen
+  colors: ["#000000"],
+
+  stroke: {
+    lineCap: "round",
+    curve: "smooth",
+    // Đặt màu line/bar thành đen
+    colors: ["#000000"],
+  },
+  xaxis: {
+    axisTicks: { show: false },
+    axisBorder: { show: false },
+    labels: {
+      // Giữ màu xám nhạt cho nhãn
+      style: {
+        colors: "#B0BEC5",
+        fontSize: "12px",
+        fontFamily: "inherit",
+        fontWeight: 400,
+      },
+    },
+    categories: labels,
+  },
+  yaxis: {
+    labels: {
+      // Giữ màu xám nhạt cho nhãn
+      style: {
+        colors: "#B0BEC5",
+        fontSize: "12px",
+        fontFamily: "inherit",
+        fontWeight: 400,
+      },
+    },
+  },
+  grid: {
+    show: true,
+    borderColor: "#E0E0E0",
+    strokeDashArray: 5,
+    xaxis: { lines: { show: false } },
+  },
+  fill: {
+    // Đặt opacity thấp cho Bar Chart để tạo hiệu ứng thanh
+    opacity: type === "bar" ? 0.7 : 1,
+  },
+  tooltip: { theme: "light" },
+});
+
+// HÀM CHUẨN BỊ DỮ LIỆU
+const prepareChartData = (apiData, title, description, color, type = "bar") => {
+  const validData = apiData.filter((item) => item.count !== undefined);
+
+  if (validData.length === 0) {
+    return null;
+  }
+
+  const labels = validData.map((item) => item.date || item.weekLabel);
+  const data = validData.map((item) => item.count);
+
+  const reversedLabels = [...labels].reverse();
+  const reversedData = [...data].reverse();
+
+  const series = [
+    {
+      name: title,
+      data: reversedData,
+    },
+  ];
+
+  // KHÔNG TRUYỀN MÀU VÀO getChartOptions NỮA VÌ CHÚNG TA DÙNG MÀU ĐEN CỐ ĐỊNH
+  const options = getChartOptions(reversedLabels, type);
+
+  return {
+    title,
+    description,
+    // SỬA ĐỔI: Đặt màu nền thẻ thành "white"
+    color: "white",
+    chart: {
+      type: type,
+      height: 220,
+      series: series,
+      options: options,
+    },
+    footer: `cập nhật vào ${new Date().toLocaleDateString("vi-VN")}`,
+  };
+};
+
+// --- HOME COMPONENT ---
 
 export function Home() {
+  const [loading, setLoading] = useState(true);
+  // ... (Giữ nguyên states) ...
+  const [totalUser, setTotalUser] = useState(null);
+  const [totalFood, setTotalFood] = useState(null);
+  const [totalRating, setTotalRating] = useState(null);
+  const [totalComment, setTotalComment] = useState(null);
+
+  const [newRatingsData, setNewRatingsData] = useState([]);
+  const [newFoodsData, setNewFoodsData] = useState([]);
+  const [newUsersData, setNewUsersData] = useState([]);
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+      setLoading(true);
+
+      try {
+        const [usersRes, foodsRes, ratingsRes, commentsRes] =
+          await Promise.allSettled([
+            fetchTotalUsers(),
+            fetchTotalFoods(),
+            fetchTotalRatings(),
+            fetchTotalComments(),
+          ]);
+
+        if (usersRes.status === "fulfilled" && usersRes.value?.code === 200)
+          setTotalUser(usersRes.value.data);
+        if (foodsRes.status === "fulfilled" && foodsRes.value?.code === 200)
+          setTotalFood(foodsRes.value.data);
+        if (ratingsRes.status === "fulfilled" && ratingsRes.value?.code === 200)
+          setTotalRating(ratingsRes.value.data);
+        if (
+          commentsRes.status === "fulfilled" &&
+          commentsRes.value?.code === 200
+        )
+          setTotalComment(commentsRes.value.data);
+
+        const [usersChartRes, foodsChartRes, ratingsChartRes] =
+          await Promise.allSettled([
+            fetchChartCustomerVelocity(),
+            fetchChartContentGrowthSpectrum(),
+            fetchChartCoreEngagementIndex(),
+          ]);
+
+        if (
+          usersChartRes.status === "fulfilled" &&
+          usersChartRes.value?.code === 200
+        )
+          setNewUsersData(usersChartRes.value.data);
+        if (
+          foodsChartRes.status === "fulfilled" &&
+          foodsChartRes.value?.code === 200
+        )
+          setNewFoodsData(foodsChartRes.value.data);
+        if (
+          ratingsChartRes.status === "fulfilled" &&
+          ratingsChartRes.value?.code === 200
+        )
+          setNewRatingsData(ratingsChartRes.value.data);
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllData();
+  }, []);
+
+  const statisticsChartsData = useMemo(() => {
+    const charts = [
+      // Line Chart
+      prepareChartData(
+        newUsersData,
+        "Lượng Người Dùng Mới (7 Ngày)",
+        "Số lượng người dùng đăng ký trong 7 ngày gần nhất.",
+        "blue",
+        "line",
+      ),
+      // Bar Chart
+      prepareChartData(
+        newRatingsData,
+        "Lượng Đánh Giá Mới (30 Ngày)",
+        "Số lượng đánh giá mới trong 30 ngày gần nhất.",
+        "red",
+        "bar",
+      ),
+      // Bar Chart
+      prepareChartData(
+        newFoodsData,
+        "Lượng Món Ăn Mới (4 Tuần)",
+        "Số lượng món ăn được thêm trong 4 tuần gần nhất.",
+        "green",
+        "bar",
+      ),
+    ];
+    return charts.filter((chart) => chart !== null);
+  }, [newUsersData, newRatingsData, newFoodsData]);
+
+  const cardData = [
+    {
+      key: "Total Users",
+      value: totalUser?.totalUsers || 0,
+      title: "Tổng Người Dùng",
+      icon: UsersIcon,
+      color: "green",
+      footer: totalUser ? formatFooter(totalUser, "monthly") : null,
+    },
+    {
+      key: "Total Foods",
+      value: totalFood?.totalFoods || 0,
+      title: "Tổng Món Ăn",
+      icon: Squares2X2Icon,
+      color: "orange",
+      footer: totalFood ? formatFooter(totalFood, "weekly") : null,
+    },
+    {
+      key: "Total Comments",
+      value: totalComment?.totalRatings || 0,
+      title: "Tổng Bình Luận",
+      icon: ChatBubbleLeftIcon,
+      color: "pink",
+      footer: totalComment ? formatFooter(totalComment, "daily") : null,
+    },
+    {
+      key: "Total Ratings",
+      value: totalRating?.totalRatings || 0,
+      title: "Tổng Đánh Giá",
+      icon: StarIcon,
+      color: "blue",
+      footer: totalRating ? formatFooter(totalRating, "daily") : null,
+    },
+  ];
+
   return (
     <div className="mt-12">
-      <div className="mb-12 grid gap-y-10 gap-x-6 md:grid-cols-2 xl:grid-cols-4">
-        {statisticsCardsData.map(({ icon, title, footer, ...rest }) => (
-          <StatisticsCard
-            key={title}
-            {...rest}
-            title={title}
-            icon={React.createElement(icon, {
-              className: "w-6 h-6 text-white",
-            })}
-            footer={
-              <Typography className="font-normal text-blue-gray-600">
-                <strong className={footer.color}>{footer.value}</strong>
-                &nbsp;{footer.label}
-              </Typography>
-            }
-          />
-        ))}
-      </div>
-      <div className="mb-6 grid grid-cols-1 gap-y-12 gap-x-6 md:grid-cols-2 xl:grid-cols-3">
-        {statisticsChartsData.map((props) => (
-          <StatisticsChart
-            key={props.title}
-            {...props}
-            footer={
-              <Typography
-                variant="small"
-                className="flex items-center font-normal text-blue-gray-600"
-              >
-                <ClockIcon strokeWidth={2} className="h-4 w-4 text-blue-gray-400" />
-                &nbsp;{props.footer}
-              </Typography>
-            }
-          />
-        ))}
-      </div>
-      <div className="mb-4 grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <Card className="overflow-hidden xl:col-span-2 border border-blue-gray-100 shadow-sm">
-          <CardHeader
-            floated={false}
-            shadow={false}
-            color="transparent"
-            className="m-0 flex items-center justify-between p-6"
-          >
-            <div>
-              <Typography variant="h6" color="blue-gray" className="mb-1">
-                Projects
-              </Typography>
-              <Typography
-                variant="small"
-                className="flex items-center gap-1 font-normal text-blue-gray-600"
-              >
-                <CheckCircleIcon strokeWidth={3} className="h-4 w-4 text-blue-gray-200" />
-                <strong>30 done</strong> this month
-              </Typography>
-            </div>
-            <Menu placement="left-start">
-              <MenuHandler>
-                <IconButton size="sm" variant="text" color="blue-gray">
-                  <EllipsisVerticalIcon
-                    strokeWidth={3}
-                    fill="currenColor"
-                    className="h-6 w-6"
-                  />
-                </IconButton>
-              </MenuHandler>
-              <MenuList>
-                <MenuItem>Action</MenuItem>
-                <MenuItem>Another Action</MenuItem>
-                <MenuItem>Something else here</MenuItem>
-              </MenuList>
-            </Menu>
-          </CardHeader>
-          <CardBody className="overflow-x-scroll px-0 pt-0 pb-2">
-            <table className="w-full min-w-[640px] table-auto">
-              <thead>
-                <tr>
-                  {["companies", "members", "budget", "completion"].map(
-                    (el) => (
-                      <th
-                        key={el}
-                        className="border-b border-blue-gray-50 py-3 px-6 text-left"
-                      >
-                        <Typography
-                          variant="small"
-                          className="text-[11px] font-medium uppercase text-blue-gray-400"
-                        >
-                          {el}
-                        </Typography>
-                      </th>
-                    )
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {projectsTableData.map(
-                  ({ img, name, members, budget, completion }, key) => {
-                    const className = `py-3 px-5 ${
-                      key === projectsTableData.length - 1
-                        ? ""
-                        : "border-b border-blue-gray-50"
-                    }`;
-
-                    return (
-                      <tr key={name}>
-                        <td className={className}>
-                          <div className="flex items-center gap-4">
-                            <Avatar src={img} alt={name} size="sm" />
-                            <Typography
-                              variant="small"
-                              color="blue-gray"
-                              className="font-bold"
-                            >
-                              {name}
-                            </Typography>
-                          </div>
-                        </td>
-                        <td className={className}>
-                          {members.map(({ img, name }, key) => (
-                            <Tooltip key={name} content={name}>
-                              <Avatar
-                                src={img}
-                                alt={name}
-                                size="xs"
-                                variant="circular"
-                                className={`cursor-pointer border-2 border-white ${
-                                  key === 0 ? "" : "-ml-2.5"
-                                }`}
-                              />
-                            </Tooltip>
-                          ))}
-                        </td>
-                        <td className={className}>
-                          <Typography
-                            variant="small"
-                            className="text-xs font-medium text-blue-gray-600"
-                          >
-                            {budget}
-                          </Typography>
-                        </td>
-                        <td className={className}>
-                          <div className="w-10/12">
-                            <Typography
-                              variant="small"
-                              className="mb-1 block text-xs font-medium text-blue-gray-600"
-                            >
-                              {completion}%
-                            </Typography>
-                            <Progress
-                              value={completion}
-                              variant="gradient"
-                              color={completion === 100 ? "green" : "blue"}
-                              className="h-1"
-                            />
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  }
-                )}
-              </tbody>
-            </table>
-          </CardBody>
-        </Card>
-        <Card className="border border-blue-gray-100 shadow-sm">
-          <CardHeader
-            floated={false}
-            shadow={false}
-            color="transparent"
-            className="m-0 p-6"
-          >
-            <Typography variant="h6" color="blue-gray" className="mb-2">
-              Orders Overview
-            </Typography>
-            <Typography
-              variant="small"
-              className="flex items-center gap-1 font-normal text-blue-gray-600"
-            >
-              <ArrowUpIcon
-                strokeWidth={3}
-                className="h-3.5 w-3.5 text-green-500"
+      {/* --- KHU VỰC THẺ THỐNG KÊ (STATISTICS CARD) --- */}
+      <div className="mb-12 grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-4">
+        {cardData.map((data) => (
+          <div key={data.key}>
+            {loading ? (
+              <Skeleton
+                variant="rectangular"
+                height={120}
+                className="rounded-xl"
               />
-              <strong>24%</strong> this month
-            </Typography>
-          </CardHeader>
-          <CardBody className="pt-0">
-            {ordersOverviewData.map(
-              ({ icon, color, title, description }, key) => (
-                <div key={title} className="flex items-start gap-4 py-3">
-                  <div
-                    className={`relative p-1 after:absolute after:-bottom-6 after:left-2/4 after:w-0.5 after:-translate-x-2/4 after:bg-blue-gray-50 after:content-[''] ${
-                      key === ordersOverviewData.length - 1
-                        ? "after:h-0"
-                        : "after:h-4/6"
-                    }`}
-                  >
-                    {React.createElement(icon, {
-                      className: `!w-5 !h-5 ${color}`,
-                    })}
-                  </div>
-                  <div>
-                    <Typography
-                      variant="small"
-                      color="blue-gray"
-                      className="block font-medium"
-                    >
-                      {title}
-                    </Typography>
-                    <Typography
-                      as="span"
-                      variant="small"
-                      className="text-xs font-medium text-blue-gray-500"
-                    >
-                      {description}
-                    </Typography>
-                  </div>
-                </div>
-              )
+            ) : (
+              <StatisticsCard
+                key={data.key}
+                value={data.value}
+                title={data.title}
+                icon={React.createElement(data.icon, {
+                  className: "w-6 h-6 text-white",
+                })}
+                color={data.color}
+                footer={data.footer}
+              />
             )}
-          </CardBody>
-        </Card>
+          </div>
+        ))}
+      </div>
+
+      {/* --- KHU VỰC BIỂU ĐỒ (STATISTICS CHART) --- */}
+      <div className="mb-6 grid grid-cols-1 gap-x-6 gap-y-12 md:grid-cols-2 xl:grid-cols-3">
+        {loading ? (
+          [...Array(3)].map((_, index) => (
+            <div key={index}>
+              <Skeleton
+                variant="rectangular"
+                height={300}
+                className="rounded-xl"
+              />
+            </div>
+          ))
+        ) : statisticsChartsData.length > 0 ? (
+          statisticsChartsData.map((props) => (
+            <StatisticsChart
+              key={props.title}
+              // SỬ DỤNG 'white' ĐỂ LOẠI BỎ MÀU NỀN CỦA CARDHEADER
+              color={props.color}
+              chart={props.chart}
+              title={props.title}
+              description={props.description}
+              footer={
+                <Typography
+                  variant="small"
+                  className="flex items-center font-normal text-blue-gray-600"
+                >
+                  <ClockIcon
+                    strokeWidth={2}
+                    className="h-4 w-4 text-blue-gray-400"
+                  />
+                  &nbsp;{props.footer}
+                </Typography>
+              }
+            />
+          ))
+        ) : (
+          <div className="rounded-xl bg-white p-8 text-center shadow-lg md:col-span-3">
+            <Typography variant="h6" color="blue-gray">
+              Không có đủ dữ liệu để hiển thị biểu đồ.
+            </Typography>
+          </div>
+        )}
       </div>
     </div>
   );
